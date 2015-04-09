@@ -19,6 +19,7 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
   })
   .controller('LoginCtrl', function($scope, $auth, $location, $http){
 
+    $scope.posts = [];
     if($auth.isAuthenticated())
       getMe();
 
@@ -30,7 +31,7 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
 
     $scope.handleSubmit = function(e) {
       e.preventDefault();
-      var post =  {title:this.user.title, body:this.user.body}
+      var post =  {author:$scope.user.displayName, title:this.user.title, body:this.user.body}
       this.user.title = this.user.body = '';
       $http.put('/api/post', post);
       $scope.posts.push(post);
@@ -41,14 +42,15 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
     }
 
     $scope.removePost = function(i) {
+      var idx = $scope.posts.length - 1 - i;
       $http({
         url:'/api/remove',
         method:'delete',
         params:{
-          idx:i
+          idx:idx
         }
       });
-      _.pullAt($scope.posts, i)
+      _.pullAt($scope.posts, idx)
     }
     
     $scope.logout = function(){
@@ -64,7 +66,11 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
       $http.get('/api/me').
         success(function(data, status, headers, config){
           $scope.user = data;
-          $scope.posts = data.posts;
+          _.each(data.posts, function(el){
+            el.author = $scope.user.displayName;
+            el._id = $scope.user._id;
+            $scope.posts.push(el);
+          })
         });
     }
   

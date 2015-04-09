@@ -163,7 +163,6 @@ app.delete('/api/remove', ensureAuthenticated, function(req,res) {
   User.findById(req.user, function(err, user) {
     if (!user)
       return res.status(400).send({ message: 'User not found' });
-    console.log(user.posts, req.query.idx)
     user.posts.splice(req.query.idx,1)
     user.save(function(err){
       if (err) console.log(err);
@@ -433,7 +432,6 @@ app.post('/auth/live', function(req, res) {
     function(accessToken, done) {
       var profileUrl = 'https://apis.live.net/v5.0/me?access_token=' + accessToken.access_token;
       request.get({ url: profileUrl, json: true }, function(err, response, profile) {
-        console.log(profile);
         done(err, profile);
       });
     },

@@ -54,9 +54,10 @@
                     <div class="md-toolbar-tools">
                       <img class="face face-border" ng-src="{{user.picture}}" />
                       <div class="title" flex>
-                        <h3> {{post.title}} </h3>
+                        <h3> {{post.author}} </h3>
                       </div>
                     </div>
+                    <h2 flex> {{post.title}} </h2>
                     <p flex> {{post.body}} </p>
                     <md-button class="remove" ng-click="removePost($index)">remove</md-button>
                   </md-item-content>
