@@ -5,23 +5,67 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
       url: 'auth/google'
     });
   })
+  .config( function($mdThemingProvider){
+    // Configure a dark theme with primary foreground yellow
+    $mdThemingProvider.theme('docs-dark', 'default')
+        .primaryPalette('yellow')
+        .dark();
+  })
+  .filter('reverse', function() {
+      return function(items) {
+        if(items)
+          return items.slice().reverse();
+      };
+  })
   .controller('LoginCtrl', function($scope, $auth, $location, $http){
+
+    if($auth.isAuthenticated())
+      getMe();
+
     $scope.authenticate = function(provider) {
       $auth.authenticate(provider).then(function(response){
-        $scope.user = response;
-        console.log(response)
-        // $scope.activities = response.data.activities.items;
-        // $scope.circles = response.data.circles
-        // console.log($scope.circles)
+        getMe();
       })
     };
+
+    $scope.handleSubmit = function(e) {
+      e.preventDefault();
+      var post =  {title:this.user.title, body:this.user.body}
+      this.user.title = this.user.body = '';
+      $http.put('/api/post', post);
+      $scope.posts.push(post);
+    }
+
+    function randomSpan(max){
+      return Math.floor(Math.random()*max) + 1;  
+    }
+
+    $scope.removePost = function(i) {
+      $http({
+        url:'/api/remove',
+        method:'delete',
+        params:{
+          idx:i
+        }
+      });
+      _.pullAt($scope.posts, i)
+    }
     
     $scope.logout = function(){
       $auth.logout();
     };
     
     $scope.isAuthenticated = function() {
-      return $auth.isAuthenticated();
+      var auth = $auth.isAuthenticated();
+      return auth;
     };
+
+    function getMe(){
+      $http.get('/api/me').
+        success(function(data, status, headers, config){
+          $scope.user = data;
+          $scope.posts = data.posts;
+        });
+    }
   
-  });
+  })

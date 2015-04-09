@@ -21,5 +21,39 @@
 }
 
 md-card {
-  min-width:360px;
+  flex:1;
+  height:100%;
+  margin:0;
+  background-color:#ffffff;
+}
+
+.grid-container {
+	position: absolute;
+	min-width:550px;
+	height: 100%;
+	width: 100%;
+	background-color:#f5f5f5;
+	padding: 15px 10%;
+}
+
+.md-toolbar-tools .md-button {
+	margin:10px;
+}
+
+.grid-tile {
+	transition: all .3s ease-in-out;
+}
+
+.card-container {
+	position: relative;
+	height:100%;
+	flex:1;
+}
+
+.md-toolbar-tools .title {
+	margin:0 10px;
+}
+
+.md-padding {
+	padding:15px;
 }
