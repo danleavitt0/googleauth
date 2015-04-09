@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html ng-app="myApp">
+
+  <head>
+    <script data-require="angular.js@*" data-semver="1.3.7" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.7/angular.js"></script>
+    <script src="//cdn.jsdelivr.net/satellizer/0.8.7/satellizer.min.js"></script>
+    <script src="//cdn.jsdelivr.net/hammerjs/2.0.4/hammer.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.6/angular-animate.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.6/angular-aria.min.js"></script>
+    <script src="https://rawgit.com/lodash/lodash/3.6.0/lodash.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/0.8.3/angular-material.min.js"></script>
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/0.8.3/angular-material.min.css">
+    <link rel="stylesheet" href="style.css" />
+    <script src="script.js"></script>
+  </head>
+
+  <body>
+    <div ng-controller="LoginCtrl">
+      <md-toolbar>
+        <div class="md-toolbar-tools">
+          <span flex></span>
+          <span layout="row" layout-align="space-around center">
+            <img class="face" ng-if="isAuthenticated()" ng-src="{{user.picture}}" />
+            <div>
+              <md-button ng-hide="isAuthenticated()" class="" ng-click="authenticate('google')">Sign in with Google</md-button>
+              <md-button ng-show="isAuthenticated()" class="md-raised md-warn" ng-click="logout()">Logout</md-button>
+            </div>
+          </span>
+        </div>
+      </md-toolbar>
+      <md-container ng-if="isAuthenticated()"  >
+        <md-content md-theme="docs-dark" class="md-padding">
+          <form ng-submit="handleSubmit($event)" class="md-padding" layout="row" layout-sm="column">
+            <md-input-container>
+              <label>Title</label>
+              <input class="md-input" ng-model="user.title">
+            </md-input-container>
+            <md-input-container>
+              <label>Body</label>
+              <input class="md-input" ng-model="user.body" type="text">
+            </md-input-container>
+            <input ng-hide="true" type="submit" />
+          </form>
+        </md-content>
+        <md-container class="grid-container">
+          <md-grid-list md-cols-sm="1" md-cols-md="1" md-cols-lg="2" md-cols-gt-lg="3"
+          md-row-height-gt-md="1:1" md-row-height="300px"
+          md-gutter="4px" md-gutter-gt-sm="16px" md-gutter-gt-md="16px" >
+            <md-grid-tile class="gray grid-tile"
+            md-rowspan="1" md-colspan="1" md-colspan-sm="1" ng-repeat="post in posts | reverse">
+              <div class="card-container">
+                <md-card>
+                  <md-item-content layout="column" class="md-padding">
+                    <div class="md-toolbar-tools">
+                      <img class="face face-border" ng-src="{{user.picture}}" />
+                      <div class="title" flex>
+                        <h3> {{post.title}} </h3>
+                      </div>
+                    </div>
+                    <p flex> {{post.body}} </p>
+                    <md-button class="remove" ng-click="removePost($index)">remove</md-button>
+                  </md-item-content>
+                </md-card>
+              </div>
+            </md-grid-tile>
+          </md-gird-list>
+        </md-container>
+      </md-container>  
+    </div>
+  </body>
+
+</html>
