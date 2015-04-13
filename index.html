@@ -15,9 +15,12 @@
   </head>
 
   <body>
-    <div ng-controller="LoginCtrl">
+    <div ng-controller="LoginCtrl" layout="column">
       <md-toolbar>
         <div class="md-toolbar-tools">
+          <span>
+            <md-button ng-click="sideOpen()"> Users </md-button> 
+          </span>
           <span flex></span>
           <span layout="row" layout-align="space-around center">
             <img class="face" ng-if="isAuthenticated()" ng-src="{{user.picture}}" />
@@ -28,44 +31,60 @@
           </span>
         </div>
       </md-toolbar>
-      <md-container ng-if="isAuthenticated()"  >
-        <md-content md-theme="docs-dark" class="md-padding">
-          <form ng-submit="handleSubmit($event)" class="md-padding" layout="row" layout-sm="column">
-            <md-input-container>
-              <label>Title</label>
-              <input class="md-input" ng-model="user.title">
-            </md-input-container>
-            <md-input-container>
-              <label>Body</label>
-              <input class="md-input" ng-model="user.body" type="text">
-            </md-input-container>
-            <input ng-hide="true" type="submit" />
-          </form>
-        </md-content>
-        <md-container class="grid-container">
-          <md-grid-list md-cols-sm="1" md-cols-md="1" md-cols-lg="2" md-cols-gt-lg="3"
-          md-row-height-gt-md="1:1" md-row-height="300px"
-          md-gutter="4px" md-gutter-gt-sm="16px" md-gutter-gt-md="16px" >
-            <md-grid-tile class="gray grid-tile"
-            md-rowspan="1" md-colspan="1" md-colspan-sm="1" ng-repeat="post in posts | reverse">
-              <div class="card-container">
-                <md-card>
-                  <md-item-content layout="column" class="md-padding">
-                    <div class="md-toolbar-tools">
-                      <img class="face face-border" ng-src="{{user.picture}}" />
-                      <div class="title" flex>
-                        <h3> {{post.title}} </h3>
+      <md-content md-theme="docs-dark" class="md-padding">
+        <form ng-submit="handleSubmit($event)" class="md-padding" layout="row" layout-sm="column">
+          <md-input-container>
+            <label>Title</label>
+            <input class="md-input" ng-model="user.title">
+          </md-input-container>
+          <md-input-container>
+            <label>Body</label>
+            <input class="md-input" ng-model="user.body" type="text">
+          </md-input-container>
+          <input ng-hide="true" type="submit" />
+        </form>
+      </md-content>
+      <md-container flex layout="row">
+        <md-sidenav class="md-sidenav-left md-whiteframe-z2" md-component-id="left">
+          <md-toolbar class="md-theme-indigo">
+            <h1 class="md-toolbar-tools"> User List </h1>
+          </md-toolbar>
+          <md-content layout-padding ng-controller="RightCtrl">
+            <md-list>
+              <md-list-item ng-repeat="person in people">
+                <p> {{ person.displayName }} </p>
+                <md-switch ng-change="toggleUser()" ng-model="person.subscribed"></md-switch>
+              </md-list-item>
+            </md-list>
+          </md-content>
+        </md-sidenav>
+        <md-container ng-if="isAuthenticated()"  >
+          <md-container class="grid-container">
+            <md-grid-list md-cols-sm="1" md-cols-md="1" md-cols-lg="2" md-cols-gt-lg="3"
+            md-row-height-gt-md="1:1" md-row-height="300px"
+            md-gutter="4px" md-gutter-gt-sm="16px" md-gutter-gt-md="16px" >
+              <md-grid-tile class="gray grid-tile"
+              md-rowspan="1" md-colspan="1" md-colspan-sm="1" ng-repeat="post in posts | reverse">
+                <div class="card-container" flex>
+                  <md-card>
+                    <md-item-content layout="column" class="md-padding">
+                      <div class="md-toolbar-tools">
+                        <img class="face face-border" ng-src="{{post.picture}}" />
+                        <div class="title" flex>
+                          <h3> {{post.author}} </h3>
+                        </div>
                       </div>
-                    </div>
-                    <p flex> {{post.body}} </p>
-                    <md-button class="remove" ng-click="removePost($index)">remove</md-button>
-                  </md-item-content>
-                </md-card>
-              </div>
-            </md-grid-tile>
-          </md-gird-list>
-        </md-container>
-      </md-container>  
+                      <h2 flex> {{post.title}} </h2>
+                      <p flex> {{post.body}} </p>
+                      <md-button ng-if="post.removable" class="remove" ng-click="removePost($index)">remove</md-button>
+                    </md-item-content>
+                  </md-card>
+                </div>
+              </md-grid-tile>
+            </md-gird-list>
+          </md-container>
+        </md-container>  
+      </md-container>
     </div>
   </body>
 

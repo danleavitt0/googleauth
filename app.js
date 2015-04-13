@@ -34,6 +34,7 @@ var userSchema = new mongoose.Schema({
   yahoo: String,
   twitter: String,
   picture: String,
+  subscribedTo:[{ type:String, unique:true }],
   posts: [{
     title:String, 
     body:String,
@@ -126,6 +127,53 @@ app.get('/api/me', ensureAuthenticated, function(req, res) {
     res.send(user);
   });
 });
+
+app.get('/api/getUsers', ensureAuthenticated, function(req,res){
+  var me;
+  User.findById(req.user, function(err, user){
+    me = user;
+  });
+  User.find({}, function(err, users){
+    if(me) {
+      users = _.reject(users,function(el){
+        return el._id == me._id;
+      })
+    }
+    res.send(users);
+  })
+})
+
+app.get('/api/getUser', ensureAuthenticated, function(req,res){
+  User.findById(req.query.id, function(err,user){
+    res.send(user);
+  })
+})
+
+app.put('/api/subscribe', ensureAuthenticated, function(req,res){
+  console.log(req.user)
+  User.findById(req.user, function(err, user) {
+    user.subscribedTo.push(req.query.id);
+    // user.subscribedToc = [];
+    user.save(function(err, u){
+      console.log(u);
+    });
+    res.status(200).end();
+  });
+})
+
+app.delete('/api/unsubscribe', function(req, res){
+  console.log(req.user)
+  User.findById(req.user, function(err, user) {
+    if (!user)
+      return res.status(400).send({ message: 'User not found' });
+    console.log(user);
+    user.subscribedTo.pull(req.query.id);
+    user.save(function(err, u){
+      console.log(u);
+    });
+    res.status(200).end();
+  });
+})
 
 /*
  |--------------------------------------------------------------------------
@@ -234,6 +282,7 @@ app.post('/auth/google', function(req, res) {
     // Step 2. Retrieve profile information about the current user.
     request.get({ url: peopleApiUrl, headers: headers, json: true }, function(err, response, profile) {
       // Step 3a. Link user accounts.
+      console.log(req.headers.authorization);
       if (req.headers.authorization) {
         User.findOne({ google: profile.sub }, function(err, existingUser) {
           if (existingUser) {
@@ -261,10 +310,12 @@ app.post('/auth/google', function(req, res) {
             return res.send({ token: createToken(existingUser) });
           }
           var user = new User();
+          user.email = profile.email;
           user.google = profile.sub;
           user.picture = profile.picture.replace('sz=50', 'sz=200');
           user.displayName = profile.name;
           user.save(function(err) {
+            console.log(err);
             var token = createToken(user);
             res.send({ token: token });
           });
