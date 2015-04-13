@@ -19,7 +19,8 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
   })
   .controller('LoginCtrl', function($scope, $auth, $location, $http, $mdSidenav){
 
-    if ($auth.isAuthenticated()) {
+    $scope.posts = [];
+    if($auth.isAuthenticated())
       getMe();
       getUsers();
     }
@@ -32,7 +33,6 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
     };
 
     $scope.handleSubmit = function(e) {
-      console.log(e);
       e.preventDefault();
       var post =  {
         author: $scope.user.displayName, 
@@ -64,8 +64,6 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
     
     $scope.logout = function(){
       $auth.logout();
-      console.log($auth);
-      // $auth.removeToken();
     };
     
     $scope.isAuthenticated = function() {
