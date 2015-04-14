@@ -20,7 +20,7 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
   .controller('LoginCtrl', function($scope, $auth, $location, $http, $mdSidenav){
 
     $scope.posts = [];
-    if($auth.isAuthenticated())
+    if($auth.isAuthenticated()){
       getMe();
       getUsers();
     }
@@ -39,7 +39,8 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
         title:this.user.title, 
         body:this.user.body, 
         owner:$scope.user._id,
-        picture:$scope.user.picture
+        picture:$scope.user.picture,
+        removable: true
       }
       this.user.title = this.user.body = '';
       $http.put('/api/post', post);
@@ -50,13 +51,13 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
       return Math.floor(Math.random()*max) + 1;  
     }
 
-    $scope.removePost = function(i) {
+    $scope.removePost = function(i, post) {
       var idx = $scope.posts.length - 1 - i;
       $http({
         url:'/api/remove',
         method:'delete',
         params:{
-          idx:idx
+          id:post._id
         }
       });
       _.pullAt($scope.posts, idx)
@@ -92,10 +93,8 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
     }
 
     function setSubscribed() {
-      console.log('setSubscribed');
       _.each($scope.user.subscribedTo, function(id){
         _.each($scope.people, function(user){
-          console.log(user);
           if(user._id == id) {
             user.subscribed = true;
             _.each(user.posts, function(post){
@@ -127,22 +126,24 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
 
     $scope.toggleUser = function() {
       if(this.person.subscribed)
-        addSubscribe(this.person._id).bind(this);
+        addSubscribe(this.person._id);
       else
         removeSubscribe(this.person._id);
     }
 
     function removeSubscribe(id) {
       $http({
-        method:'delete',
+        method:'get',
         url:'/api/unsubscribe',
         params:{
           id:id
         }
       })
-      $scope.posts = _.filter($scope.posts, function(post){
-        post.owner === id;
+      var posts = _.reject($scope.posts, function(post){
+        return post.owner === id;
       })
+      console.log($scope.posts);
+      $scope.$parent.posts = posts;
     }
 
     function addSubscribe(id){
@@ -161,9 +162,13 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
           id:id
         }
       })
-      .success(function(data){
-        getUser(data);
-        this.setSubscribed();
+      .success(function(user){
+        _.each(user.posts, function(post){
+          post.author = user.displayName;
+          post.picture = user.picture;
+          post.owner = user._id
+          $scope.posts.push(post);
+        })
       })
     }
 

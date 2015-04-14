@@ -56,6 +56,14 @@ md-card {
 	padding:15px;
 }
 
+.title * {
+	margin:0;
+}
+
+.title p {
+	font-size:14px;
+}
+
 md-list-item {
 	display: block;
 }
@@ -65,6 +73,6 @@ md-list-item md-switch {
 	right:0;
 }
 
-md-list-item > p, md-list-item > md-switch {
+md-list-item * {
 	display:inline-block;
 }

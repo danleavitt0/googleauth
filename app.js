@@ -153,7 +153,6 @@ app.put('/api/subscribe', ensureAuthenticated, function(req,res){
   console.log(req.user)
   User.findById(req.user, function(err, user) {
     user.subscribedTo.push(req.query.id);
-    // user.subscribedToc = [];
     user.save(function(err, u){
       console.log(u);
     });
@@ -161,12 +160,10 @@ app.put('/api/subscribe', ensureAuthenticated, function(req,res){
   });
 })
 
-app.delete('/api/unsubscribe', function(req, res){
-  console.log(req.user)
+app.get('/api/unsubscribe', ensureAuthenticated, function(req, res){
   User.findById(req.user, function(err, user) {
     if (!user)
       return res.status(400).send({ message: 'User not found' });
-    console.log(user);
     user.subscribedTo.pull(req.query.id);
     user.save(function(err, u){
       console.log(u);
@@ -211,7 +208,7 @@ app.delete('/api/remove', ensureAuthenticated, function(req,res) {
   User.findById(req.user, function(err, user) {
     if (!user)
       return res.status(400).send({ message: 'User not found' });
-    user.posts.splice(req.query.idx,1)
+    user.posts.pull(req.query.id);
     user.save(function(err){
       if (err) console.log(err);
       res.status(200).end();  
