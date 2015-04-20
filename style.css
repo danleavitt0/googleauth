@@ -60,7 +60,7 @@ md-list-item {
 	display: block;
 }
 
-md-list-item md-switch {
+md-list-item > md-switch {
 	position: absolute;
 	right:0;
 }

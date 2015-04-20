@@ -20,7 +20,7 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
   .controller('LoginCtrl', function($scope, $auth, $location, $http, $mdSidenav){
 
     $scope.posts = [];
-    if($auth.isAuthenticated())
+    if($auth.isAuthenticated()){
       getMe();
       getUsers();
     }
