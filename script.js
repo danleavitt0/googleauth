@@ -21,19 +21,29 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
 
     $scope.posts = [];
     if($auth.isAuthenticated()){
-      getMe(getUsers());
+      getMe(getUsers);
+    }
+
+    function isMe(u){
+      return $scope.user._id === u._id
     }
 
     io().on('added post', function(user){
-      if( user._id != $scope.user._id ) {
-        $scope.posts.push(_.last(user.posts));
+      console.log($scope.user.subscribedTo);
+      if(_.includes($scope.user.subscribedTo, user._id) || isMe(user)) {
+        var post = addToPost(_.last(user.posts), user);
+        if(user._id === $scope.user._id)
+          post.removable = true;
+        $scope.$apply(function(){
+          $scope.posts.push(post);
+        })
       }
     })
 
     $scope.authenticate = function(provider) {
       $auth.authenticate(provider).then(function(response){
-        getMe();
-        getUsers();
+        getMe(getUsers);
+
       })
     };
 
@@ -47,10 +57,8 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
         picture:$scope.user.picture,
         removable: true
       }
-      io().emit('/api/post', post);
       this.user.title = this.user.body = '';
       $http.put('/api/post', post);
-      $scope.posts.push(post);
     }
 
     function randomSpan(max){
@@ -67,7 +75,7 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
         }
       });
       $scope.posts = _.reject($scope.posts, function(el){
-        el._id == post._id
+        return el._id == post._id;
       })
     }
     
@@ -100,16 +108,20 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
       })
     }
 
+    function addToPost(post, user){
+      post.author = user.displayName;
+      post.picture = user.picture;
+      post.owner = user._id
+      return post;
+    }
+
     function setSubscribed() {
       _.each($scope.user.subscribedTo, function(id){
         _.each($scope.people, function(user){
           if(user._id == id) {
             user.subscribed = true;
             _.each(user.posts, function(post){
-              post.author = user.displayName;
-              post.picture = user.picture;
-              post.owner = user._id
-              $scope.posts.push(post);
+              $scope.posts.push(addToPost(post, user));
             })
           }
         })
@@ -122,9 +134,7 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
         success(function(data, status, headers, config){
           $scope.user = data;
           _.each($scope.user.posts, function(el){
-            el.author = $scope.user.displayName;
-            el.owner = $scope.user._id
-            el.picture = $scope.user.picture;
+            el = addToPost(el, $scope.user)
             el.removable = true;
           })
           $scope.posts = data.posts;
@@ -152,6 +162,7 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
       var posts = _.reject($scope.posts, function(post){
         return post.owner === id;
       })
+      $scope.$parent.user.subscribedTo = _.pull($scope.$parent.user.subscribedTo, id)
       $scope.$parent.posts = posts;
     }
 
@@ -177,6 +188,7 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
           post.picture = user.picture;
           post.owner = user._id
           $scope.posts.push(post);
+          $scope.$parent.user.subscribedTo.push(user._id);
         })
       })
     }
