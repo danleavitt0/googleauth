@@ -11,6 +11,8 @@ var async = require('async');
 var bcrypt = require('bcryptjs');
 var bodyParser = require('body-parser');
 var express = require('express');
+var app = express();
+var server = require('http').createServer(app);
 var logger = require('morgan');
 var jwt = require('jwt-simple');
 var moment = require('moment');
@@ -18,6 +20,7 @@ var mongoose = require('mongoose');
 var request = require('request');
 var cors = require('cors');
 var _ = require('lodash');
+var io = require('socket.io')(server);
 
 var config = require('./config');
 
@@ -64,8 +67,6 @@ userSchema.methods.comparePassword = function(password, done) {
 var User = mongoose.model('User', userSchema);
 
 mongoose.connect(config.MONGO_URI);
-
-var app = express();
 
 app.set('port', process.env.PORT || 3000);
 app.use(logger('dev'));
@@ -117,6 +118,22 @@ function createToken(user) {
   return jwt.encode(payload, config.TOKEN_SECRET);
 }
 
+io.on('connection', function(socket){
+  app.put('/api/post', ensureAuthenticated, function(req,res) {
+    User.findById(req.user, function(err, user) {
+      if (!user) {
+        return res.status(400).send({ message: 'User not found' });
+      }
+      user.posts.push(req.body);
+      user.save(function(err, u){
+        if(err) res.status(503).end();
+        res.status(200).end();
+      })
+      io.emit('added post', user);
+    });
+  })
+})
+
 /*
  |--------------------------------------------------------------------------
  | GET /api/me
@@ -153,7 +170,6 @@ app.put('/api/subscribe', ensureAuthenticated, function(req,res){
   console.log(req.user)
   User.findById(req.user, function(err, user) {
     user.subscribedTo.push(req.query.id);
-    // user.subscribedToc = [];
     user.save(function(err, u){
       console.log(u);
     });
@@ -161,12 +177,10 @@ app.put('/api/subscribe', ensureAuthenticated, function(req,res){
   });
 })
 
-app.delete('/api/unsubscribe', function(req, res){
-  console.log(req.user)
+app.get('/api/unsubscribe', ensureAuthenticated, function(req, res){
   User.findById(req.user, function(err, user) {
     if (!user)
       return res.status(400).send({ message: 'User not found' });
-    console.log(user);
     user.subscribedTo.pull(req.query.id);
     user.save(function(err, u){
       console.log(u);
@@ -193,25 +207,11 @@ app.put('/api/me', ensureAuthenticated, function(req, res) {
   });
 });
 
-
-app.put('/api/post', ensureAuthenticated, function(req,res) {
-  User.findById(req.user, function(err, user) {
-    if (!user) {
-      return res.status(400).send({ message: 'User not found' });
-    }
-    user.posts.push(req.body);
-    user.save(function(err, u){
-      if(err) res.status(503).end();
-      res.status(200).end();
-    })
-  });
-})
-
 app.delete('/api/remove', ensureAuthenticated, function(req,res) {
   User.findById(req.user, function(err, user) {
     if (!user)
       return res.status(400).send({ message: 'User not found' });
-    user.posts.splice(req.query.idx,1)
+    user.posts.pull(req.query.id);
     user.save(function(err){
       if (err) console.log(err);
       res.status(200).end();  
@@ -828,6 +828,6 @@ app.get('*', function(req, res) {
   res.sendfile('./' + req.url);
 });
 
-app.listen(app.get('port'), function() {
+server.listen(app.get('port'), function() {
   console.log('Express server listening on port ' + app.get('port'));
 });
