@@ -25,6 +25,12 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
       getUsers();
     }
 
+    io().on('added post', function(user){
+      if( user._id != $scope.user._id ) {
+        $scope.posts.push(_.last(user.posts));
+      }
+    })
+
     $scope.authenticate = function(provider) {
       $auth.authenticate(provider).then(function(response){
         getMe();
@@ -42,6 +48,7 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
         picture:$scope.user.picture,
         removable: true
       }
+      io().emit('/api/post', post);
       this.user.title = this.user.body = '';
       $http.put('/api/post', post);
       $scope.posts.push(post);
@@ -60,7 +67,9 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
           id:post._id
         }
       });
-      _.pullAt($scope.posts, idx)
+      $scope.posts = _.reject($scope.posts, function(el){
+        el._id == post._id
+      })
     }
     
     $scope.logout = function(){
@@ -142,7 +151,6 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
       var posts = _.reject($scope.posts, function(post){
         return post.owner === id;
       })
-      console.log($scope.posts);
       $scope.$parent.posts = posts;
     }
 
