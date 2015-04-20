@@ -21,8 +21,7 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
 
     $scope.posts = [];
     if($auth.isAuthenticated()){
-      getMe();
-      getUsers();
+      getMe(getUsers());
     }
 
     io().on('added post', function(user){
@@ -117,7 +116,8 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
       })
     }
 
-    function getMe(){
+    function getMe(cb){
+      cb = cb || function(){};
       $http.get('/api/me').
         success(function(data, status, headers, config){
           $scope.user = data;
@@ -128,6 +128,7 @@ angular.module('myApp', ['satellizer', 'ngMaterial'])
             el.removable = true;
           })
           $scope.posts = data.posts;
+          cb();
         });
     }
   })
